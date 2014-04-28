@@ -1,46 +1,48 @@
-<?php namespace Larapress\Larapress;
+<?php
+
+namespace Larapress\Larapress;
 
 use Illuminate\Support\ServiceProvider;
+use samjoyce\slugger\Slugger;
 
 class AdminServiceProvider extends ServiceProvider {
 
-	/**
-	 * Indicates if loading of the provider is deferred.
-	 *
-	 * @var bool
-	 */
-	protected $defer = false;
+    /**
+     * Indicates if loading of the provider is deferred.
+     *
+     * @var bool
+     */
+    protected $defer = false;
 
-	/**
-	 * Bootstrap the application events.
-	 *
-	 * @return void
-	 */
-	public function boot()
-	{
-		$this->package('larapress/larapress');
-                
-                 include __DIR__.'/../../routes.php';
-	}
+    /**
+     * Bootstrap the application events.
+     *
+     * @return void
+     */
+    public function boot() {
+        $this->package('larapress/larapress');
 
-	/**
-	 * Register the service provider.
-	 *
-	 * @return void
-	 */
-	public function register()
-	{
-		//
-	}
+        include __DIR__ . '/../../routes.php';
+    }
 
-	/**
-	 * Get the services provided by the provider.
-	 *
-	 * @return array
-	 */
-	public function provides()
-	{
-		return array();
-	}
+    /**
+     * Register the service provider.
+     *
+     * @return void
+     */
+    public function register() {
+        $this->app->bind('Slugger', function() {
+            return new Slugger(\DB::connection()->getPdo());
+        });
+    }
+
+    /**
+     * Get the services provided by the provider.
+     *
+     * @return array
+     */
+    public function provides() {
+        return array();
+    }
 
 }
