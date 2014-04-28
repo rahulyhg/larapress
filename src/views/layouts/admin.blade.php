@@ -2,14 +2,17 @@
 
 <html>
     <head>
-        {{HTML::style('packages/larapress/larapress/styles.css')}}
+        {{HTML::style('packages/larapress/larapress/css/styles.css')}}
     </head>
 
     <body>
         <div id="page">
+            <div id="header">
+                <h2>Larapress</h2>
+            </div>
             <div id="sidebar">
                 @foreach($packages as $package)
-                {{HTML::link($package["admin_uri"], $package["name"])}}<br><br>
+                {{HTML::link($package["admin_uri"], $package["name"])}}
                 @endforeach
             </div>
 
