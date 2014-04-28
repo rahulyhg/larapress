@@ -12,12 +12,18 @@ namespace Larapress\Larapress;
  * which will include a view called plugin.blade.php in \Config->partials folder
  */
 class DynamicContent {
-    
-    protected $exploder = '!*!';
 
-    public function __construct($raw, $tag = 'partial') {
+    protected $exploder = '!*!'; //used to seperate content
+    
+    protected $package; //name of the package calling this dynamicContent
+    
+    protected $tag; //Tag in the content to use as the partializer
+
+    public function __construct($raw, $package, $tag = 'partial') {
         $this->tag = $tag;
-   
+
+        $this->package = $package;
+        
         $this->rawContent = $this->prepContent($raw);
     }
 
@@ -29,13 +35,33 @@ class DynamicContent {
     public function prepContent($string) {
         $string = str_replace('&lt;', '<', $string);
         $string = str_replace('&gt;', '>', $string);
-        $string = str_replace('['.$this->tag, '<'.$this->tag, $string);
-         $string = str_replace('[/'.$this->tag.']', '</'.$this->tag.'>', $string);
-         $string = str_replace(']', '>', $string);
-        $string = '<section>'.$string.'</section>';
+        $string = str_replace('&nbsp;', ' ', $string);
+        $string = str_replace('[' . $this->tag, '<' . $this->tag, $string);
+        $string = str_replace('[/' . $this->tag . ']', '</' . $this->tag . '>', $string);
+        $string = str_replace(']', '>', $string);
+        $string = '<section>' . $string . '</section>';
         return $string;
     }
-    
+
+    /**
+     * Check to see if tag as a view attribute with a specified package name,
+     * if so, extract and create package_view attr else make to calling package
+     * @param type $attrs
+     */
+    public function validateAttrs($attrs) {
+        for($x=0; $x<count($attrs); $x++) {
+            if (isset($attrs[$x]["view"]) && strpos($attrs[$x]["view"], '::')) {
+                $tmp = explode('::', $attrs[$x]["view"]);
+                $attrs[$x]["package_view"] = $tmp[0] . '::partials';
+                $attrs[$x]["view"] = $tmp[1];
+            }
+            else{
+                $attrs[$x]["package_view"] = $this->package.'::partials';
+            }
+        }
+        return $attrs;
+    }
+
     /**
      * Get all the tag attributes of all template elements
      * @param type $doc
@@ -58,34 +84,35 @@ class DynamicContent {
 
     /**
      * Create a DOM element of the content to be searched for elements
+     * then validate before returning.
      * @param type $string
      * @return array
      */
     public function getPartials($string) {
         $doc = new \DOMDocument();
         $doc->loadXML($string);
-        $results = $this->getTagDetails($doc);
+        $attrs = $this->getTagDetails($doc);
+        $results = $this->validateAttrs($attrs);
         return isset($results) ? $results : null;
     }
-    
-    
+
     /**
      * Convert the tags into obscure code to then be removed
      * @return string
      */
-    public function replaceTags(){
-        $reg = '#<'.$this->tag.'[^>]*>.*?</'.$this->tag.'>#si';
+    public function replaceTags() {
+        $reg = '#<' . $this->tag . '[^>]*>.*?</' . $this->tag . '>#si';
         return preg_replace($reg, $this->exploder, $this->rawContent);
     }
-    
+
     /**
      * Return an array of all the content sections split by the partials
      * @return content
      */
-    public function getContent(){
+    public function getContent() {
         return explode($this->exploder, $this->replaceTags());
     }
-    
+
     /**
      * Start the class going, the main call
      */
