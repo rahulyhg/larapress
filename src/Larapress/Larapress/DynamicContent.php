@@ -19,7 +19,7 @@ class DynamicContent {
     
     protected $tag; //Tag in the content to use as the partializer
 
-    public function __construct($raw, $package, $tag = 'partial') {
+    public function __construct($raw, $package = null, $tag = 'partial') {
         $this->tag = $tag;
 
         $this->package = $package;
@@ -119,6 +119,11 @@ class DynamicContent {
     public function getDynamicContent() {
         $this->partials = $this->getPartials($this->rawContent);
         $this->contents = $this->getContent();
+
+        return $this;
     }
 
+public function getHTML(){
+    return $this->getDynamicContent();
+}
 }
